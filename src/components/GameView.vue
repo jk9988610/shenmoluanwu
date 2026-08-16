@@ -15,14 +15,16 @@
         :is-observing="isObserving"
         :is-host-call="needsHostCall"
       />
-      <StoryFeed
-        :items="feedItems"
-        :clickable="feedClickable"
-        :show-observe-hint="showObserveHint"
-        :crisis="node.crisis && needsHostCall"
-        @continue="onFeedContinue"
-      />
+      <ObserveArea :items="historyItems" />
     </div>
+
+    <DialogBox
+      :dialog="dialog"
+      :clickable="dialogClickable"
+      :crisis="node.crisis && needsHostCall"
+      :hint="dialogHint"
+      @continue="onDialogContinue"
+    />
 
     <ChoiceModal
       v-if="showModal"
@@ -46,9 +48,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { EventRunner } from '../engine/eventRunner'
-import { useStoryFeed } from '../composables/useStoryFeed'
+import { useStoryPresentation } from '../composables/useStoryPresentation'
 import TopBar from './TopBar.vue'
-import StoryFeed from './StoryFeed.vue'
+import ObserveArea from './ObserveArea.vue'
+import DialogBox from './DialogBox.vue'
 import ChoiceModal from './ChoiceModal.vue'
 import HostPanel from './HostPanel.vue'
 import TianjiDrawer from './TianjiDrawer.vue'
@@ -60,7 +63,12 @@ const props = defineProps<{
 }>()
 
 const drawerOpen = ref(false)
-const { feedItems, clear, appendHostResponse } = useStoryFeed(() => props.runner)
+const {
+  historyItems,
+  dialog,
+  advanceDialog,
+  appendHostResponse,
+} = useStoryPresentation(() => props.runner)
 
 const node = computed(() => props.runner.getCurrentNode())
 const canContinue = computed(() => props.runner.canContinue())
@@ -84,17 +92,19 @@ const modalTitle = computed(() =>
   node.value.crisis ? '宿主遭遇危机，你如何相助？' : '宿主向你求助'
 )
 
-const showObserveHint = computed(
-  () =>
-    isObserving.value &&
-    !needsHostCall.value &&
-    !needsAwakening.value
-)
-
-const feedClickable = computed(() => {
+const dialogClickable = computed(() => {
   if (showModal.value) return false
+  if (!dialog.value) return false
   if (needsAwakening.value) return true
-  return canContinue.value && isObserving.value
+  if (needsHostCall.value) return false
+  return true
+})
+
+const dialogHint = computed(() => {
+  if (!dialogClickable.value) return ''
+  if (showModal.value) return ''
+  if (needsHostCall.value) return '请在选项中回应宿主'
+  return '点击对话框继续'
 })
 
 const topBarMode = computed(() => {
@@ -136,14 +146,8 @@ const tianjiHints = computed(() => {
   return hints
 })
 
-function onFeedContinue() {
-  if (needsAwakening.value) {
-    props.runner.completeAwakening()
-    return
-  }
-  if (canContinue.value) {
-    props.runner.continue()
-  }
+function onDialogContinue() {
+  advanceDialog()
 }
 
 function onModalSelect(responseId: string) {
