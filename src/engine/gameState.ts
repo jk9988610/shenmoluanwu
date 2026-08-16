@@ -3,23 +3,44 @@ import { SAVE_KEY } from './types'
 
 export function createInitialSave(story: StoryData): SaveData {
   return {
-    version: 1,
+    version: 2,
     hostId: story.hostId,
     currentNodeId: story.start,
     flags: {},
     vars: {},
     trust: 0,
     systemAwakeningDone: false,
-    phase: 'story_only',
+    phase: 'with_system',
+    resolvedHostCalls: [],
     history: [],
     updatedAt: new Date().toISOString(),
   }
 }
 
-export function applyEffect(
-  save: SaveData,
-  effect?: Effect
-): SaveData {
+export function normalizeSave(raw: SaveData): SaveData {
+  const phase = raw.phase ?? 'with_system'
+  let systemAwakeningDone = raw.systemAwakeningDone ?? false
+
+  // 阶段一旧存档：中途进度视为已完成系统初遇
+  if (
+    phase === 'story_only' &&
+    !systemAwakeningDone &&
+    raw.currentNodeId !== 'wake_on_road'
+  ) {
+    systemAwakeningDone = true
+  }
+
+  return {
+    ...raw,
+    version: 2,
+    phase: 'with_system',
+    resolvedHostCalls: raw.resolvedHostCalls ?? [],
+    trust: raw.trust ?? 0,
+    systemAwakeningDone,
+  }
+}
+
+export function applyEffect(save: SaveData, effect?: Effect): SaveData {
   if (!effect) return save
 
   const flags = { ...save.flags }
@@ -51,7 +72,7 @@ export function loadSave(): SaveData | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as SaveData
+    return normalizeSave(JSON.parse(raw) as SaveData)
   } catch {
     return null
   }

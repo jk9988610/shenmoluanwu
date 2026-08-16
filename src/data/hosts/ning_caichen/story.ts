@@ -9,9 +9,38 @@ const emptySystem = {
 
 export const ningCaichenStory: StoryData = {
   hostId: 'ning_caichen',
-  version: 1,
-  start: 'prologue_road',
+  version: 2,
+  start: 'wake_on_road',
   events: {
+    wake_on_road: {
+      id: 'wake_on_road',
+      display: { location: '山路', period: '雨夜' },
+      narrative: [
+        '雨声骤紧，宁采臣自树下惊醒，下意识攥紧湿透的行囊。',
+        '四周无人，只有林涛与雨点敲打枝叶。',
+      ],
+      systemAwakening: true,
+      awakeningScript: {
+        systemLines: [
+          '你醒了。',
+          '我是系统。往后会在你心里说话——旁人听不见。',
+          '你若遇危难、向我求助，我会帮你。',
+        ],
+        hostLines: [
+          '……谁？！',
+          '（他猛然抬头，四顾无人，雨声依旧。）',
+        ],
+        next: '',
+      },
+      next: 'prologue_road',
+      hostCall: null,
+      crisis: false,
+      tianji: {
+        show: true,
+        hints: ['宿主宁采臣，赴考书生，第三次上路。', '前方林深处，有古寺灯火。'],
+      },
+    },
+
     prologue_road: {
       id: 'prologue_road',
       display: { location: '赴考路', period: '暮雨' },
@@ -164,6 +193,33 @@ export const ningCaichenStory: StoryData = {
         '老僧引宁采臣至厢房区。东厢窗纸破损，风里带着一股甜腥气；西厢离燕客近，相对安静。',
         '宁采臣记得老僧方才的警告，心中发毛。',
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统，这异响是什么？我住哪儿才安全？',
+        responses: [
+          {
+            id: 'warn_east',
+            label: '告知：东厢下有血食气，别住东厢，选西厢。',
+            systemText: '别住东厢。楼下有血食气，选西厢。',
+            hostReply: '好……我记住了。',
+            effects: { trust: 1, flags: { hinted_west: true } },
+          },
+          {
+            id: 'tell_yan',
+            label: '告知：西厢近燕赤霞，相对安全，住西厢。',
+            systemText: '住西厢。燕赤霞在隔壁，妖物忌惮他。',
+            hostReply: '燕客……但愿他肯出手。',
+            effects: { trust: 1, flags: { hinted_west: true } },
+          },
+          {
+            id: 'explain_sound',
+            label: '说明异响是妖物蛰伏，选厢房时靠门远墙。',
+            systemText: '异响是妖物在楼下蛰伏。选远墙的厢房，别靠窗。',
+            hostReply: '我明白了，小心为上。',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'east_room',
@@ -178,7 +234,11 @@ export const ningCaichenStory: StoryData = {
           sets: { flags: { room_west: true } },
         },
       ],
-      ...emptySystem,
+      tianji: {
+        show: true,
+        hints: ['东厢之下，有血食之气。', '燕赤霞居西厢，可恃为援。'],
+      },
+      crisis: false,
     },
 
     assign_east: {
@@ -277,6 +337,33 @@ export const ningCaichenStory: StoryData = {
           side: 'npc',
         },
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统，是小倩在敲门……我开不开门？',
+        responses: [
+          {
+            id: 'dont_open',
+            label: '让她别开门，装睡不要应。',
+            systemText: '别开门。装睡，不要应。',
+            hostReply: '好……我不开。',
+            effects: { trust: 1, flags: { door_closed: true } },
+          },
+          {
+            id: 'warn_night',
+            label: '告知雨夜寺中不宜开门，隔门问话即可。',
+            systemText: '雨夜寺中不宜开门。若要问话，隔门问，别开门。',
+            hostReply: '隔门问……我明白了。',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'comfort',
+            label: '安抚她，先稳住心神，别开厢门。',
+            systemText: '先稳住。别开厢门，她进不来就无妨。',
+            hostReply: '我……我尽量镇定。',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'not_open',
@@ -290,7 +377,9 @@ export const ningCaichenStory: StoryData = {
           next: 'open_door_path',
         },
       ],
-      ...emptySystem,
+      crisis: false,
+      tianji: null,
+      systemAwakening: false,
     },
 
     open_door_path: {
@@ -323,6 +412,33 @@ export const ningCaichenStory: StoryData = {
         '门外的人并未离去。片刻后，一只纤手从窗缝塞入金锭，落在案上，冷光森然。',
         '宁采臣想起小倩的警告，又想起赴考需用，手指微微发抖。',
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统，这银子……能拿吗？',
+        responses: [
+          {
+            id: 'refuse_gold_call',
+            label: '绝不能拿，妖物常以财物诱人。',
+            systemText: '不能拿。妖物爱用财物诱人，快推回去。',
+            hostReply: '我……我不拿。',
+            effects: { trust: 1, flags: { refused_gold: true } },
+          },
+          {
+            id: 'warn_yaksha',
+            label: '告知收此金会招夜叉嗅到生气。',
+            systemText: '收了会招夜叉。妖金带腥气，推回去。',
+            hostReply: '难怪小倩警告……我推回去。',
+            effects: { trust: 1, flags: { refused_gold: true } },
+          },
+          {
+            id: 'push_back',
+            label: '让他立刻把金锭推出窗外。',
+            systemText: '立刻推出去。别碰太久。',
+            hostReply: '我这就推出去！',
+            effects: { trust: 1, flags: { refused_gold: true } },
+          },
+        ],
+      },
       choices: [
         {
           id: 'refuse_gold',
@@ -337,7 +453,12 @@ export const ningCaichenStory: StoryData = {
           sets: { flags: { refused_gold: true, hesitated: true } },
         },
       ],
-      ...emptySystem,
+      crisis: false,
+      tianji: {
+        show: true,
+        hints: ['妖金带腥，触之招祸。', '拒金不受，夜叉难寻生气。'],
+      },
+      systemAwakening: false,
     },
 
     before_yaksha: {
@@ -366,6 +487,33 @@ export const ningCaichenStory: StoryData = {
         '夜叉咆哮：「生人气！生人气！」',
         '宁采臣魂飞魄散，屋里已无处可藏。',
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统！夜叉进来了！怎么办！',
+        responses: [
+          {
+            id: 'hide_beam',
+            label: '让他立刻攀上房梁屏息躲藏。',
+            systemText: '爬上房梁！屏住呼吸，别出声！',
+            hostReply: '……！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'call_yan',
+            label: '让他大声呼喊燕赤霞来救。',
+            systemText: '喊燕赤霞！大声喊！',
+            hostReply: '燕客——救我——！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'cover_hide',
+            label: '叮嘱捂嘴上梁，勿泄活人之气。',
+            systemText: '捂嘴，上梁。别让妖闻到你活人的精气。',
+            hostReply: '我上了……',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'hide',
@@ -386,9 +534,11 @@ export const ningCaichenStory: StoryData = {
         },
       ],
       crisis: true,
-      hostCall: null,
+      tianji: {
+        show: true,
+        hints: ['夜叉畏剑，燕赤霞在附近。', '屏息上梁，可避一时。'],
+      },
       systemAwakening: false,
-      tianji: null,
     },
 
     yaksha_hide: {
@@ -473,6 +623,33 @@ export const ningCaichenStory: StoryData = {
           side: 'host',
         },
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统……她到底是不是鬼？我该信她吗？',
+        responses: [
+          {
+            id: 'trust_her',
+            label: '告知她是鬼魂，但心未泯，可信其求助。',
+            systemText: '她是鬼。但心未泯，她求你携骨灰，可信。',
+            hostReply: '鬼……可她救过我。我信她这一回。',
+            effects: { trust: 1, flags: { knows_ghost: true } },
+          },
+          {
+            id: 'help_anyway',
+            label: '不论生死，她拒金救你，值得相助。',
+            systemText: '不论生死，她方才也在救你。帮她葬骨脱身。',
+            hostReply: '好，我答应她。',
+            effects: { trust: 1, flags: { promised_help: true } },
+          },
+          {
+            id: 'warn_careful',
+            label: '说明她是鬼身，但可取骨灰，需小心姥姥。',
+            systemText: '她是鬼身。骨灰能取，但要快，姥姥未远。',
+            hostReply: '我明白……快些行动。',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'promise',
@@ -487,7 +664,12 @@ export const ningCaichenStory: StoryData = {
           sets: { flags: { promised_help: true, hesitated: true } },
         },
       ],
-      ...emptySystem,
+      crisis: false,
+      tianji: {
+        show: true,
+        hints: ['骨灰在金匣，姥姥仍盘踞寺后。', '帮她葬骨，她可脱离控制。'],
+      },
+      systemAwakening: false,
     },
 
     get_urn: {
@@ -520,6 +702,33 @@ export const ningCaichenStory: StoryData = {
         '金匣入手冰凉，妖雾骤然合拢。姥姥的鬼爪从土里探出，抓住宁采臣脚踝。',
         '小倩扑上来撕扯鬼爪，指甲迸裂，惨叫刺耳。',
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统！逃不掉了——怎么办！',
+        responses: [
+          {
+            id: 'throw_urn',
+            label: '让他把金匣掷向姥姥，趁乱脱身。',
+            systemText: '把金匣掷向姥姥！趁她分神，往外跑！',
+            hostReply: '我扔了——跑！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'drag_xiaqian',
+            label: '让他拽着小倩往墙洞方向冲。',
+            systemText: '拽着小倩！往墙洞方向冲，别停！',
+            hostReply: '小倩，跟我走！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'cover_xiaqian',
+            label: '叮嘱护住金匣，沿来路洞逃。',
+            systemText: '护住匣子，沿来时的洞逃，别走正门！',
+            hostReply: '我知道往哪边……',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'wise_escape_rush',
@@ -534,9 +743,11 @@ export const ningCaichenStory: StoryData = {
         },
       ],
       crisis: true,
-      hostCall: null,
+      tianji: {
+        show: true,
+        hints: ['姥姥贪匣，掷匣可乱其神。', '墙洞来路，莫走正门。'],
+      },
       systemAwakening: false,
-      tianji: null,
     },
 
     final_escape: {
@@ -546,6 +757,33 @@ export const ningCaichenStory: StoryData = {
         '宁采臣照小倩所示撒下符灰，妖雾退开一线。他双手挖出金匣，匣上刻着「聂」字。',
         '姥姥的咆哮近在咫尺，土墙开始崩裂。',
       ],
+      hostCall: {
+        trigger: 'auto',
+        hostText: '系统！姥姥追来了，往哪逃？',
+        responses: [
+          {
+            id: 'wall_hole',
+            label: '指引沿旧墙洞脱身，直奔山道。',
+            systemText: '沿旧墙洞走！别走正门，直奔山道！',
+            hostReply: '墙洞……我记得路！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'follow_xiaqian',
+            label: '让他紧跟小倩，别落单。',
+            systemText: '紧跟小倩，别落单。她认得出去的路。',
+            hostReply: '小倩，带路！',
+            effects: { trust: 1 },
+          },
+          {
+            id: 'hold_urn',
+            label: '叮嘱抱紧金匣，符灰路径快走。',
+            systemText: '抱紧匣子，沿符灰铺的路快走！',
+            hostReply: '我抱着……快！',
+            effects: { trust: 1 },
+          },
+        ],
+      },
       choices: [
         {
           id: 'wise_escape',
@@ -559,9 +797,11 @@ export const ningCaichenStory: StoryData = {
         },
       ],
       crisis: true,
-      hostCall: null,
+      tianji: {
+        show: true,
+        hints: ['正门妖雾最浓。', '山道在墙洞之外。'],
+      },
       systemAwakening: false,
-      tianji: null,
     },
 
     escape_success: {
@@ -595,6 +835,7 @@ export const ningCaichenStory: StoryData = {
         summary: [
           '你护宁采臣携小倩脱离兰若寺，骨灰得葬，二人相伴。',
           '此为《聂小倩》原著向结局。',
+          '系统任务完成。你悄然离开这具肉身，雨声里再无心声。',
         ],
       },
       ...emptySystem,
