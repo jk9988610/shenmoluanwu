@@ -8,33 +8,30 @@
       :show-system-ui="systemAwakeningDone"
       @open-drawer="drawerOpen = true"
     />
-    <div
-      class="game-main"
-      :class="{
-        'game-main--with-voice': showInnerVoice,
-        'game-main--with-host': systemAwakeningDone,
-      }"
-    >
+    <div class="game-main" :class="{ 'game-main--with-host': systemAwakeningDone }">
       <HostPanel
         v-if="systemAwakeningDone"
         :goal="goal"
         :is-observing="isObserving"
         :is-host-call="needsHostCall"
       />
-      <div class="game-center">
-        <NarrativeView :node="node" />
-      </div>
-      <InnerVoicePanel
-        v-if="showInnerVoice"
-        :mode="innerVoiceMode"
-        :awakening="node.awakeningScript"
-        :host-call="node.hostCall"
-        :crisis="node.crisis"
-        @awakening-done="onAwakeningDone"
-        @host-response="onHostResponse"
+      <StoryFeed
+        :items="feedItems"
+        :clickable="feedClickable"
+        :show-observe-hint="showObserveHint"
+        :crisis="node.crisis && needsHostCall"
+        @continue="onFeedContinue"
       />
     </div>
-    <ObserveBar v-if="canContinue && isObserving" @continue="onContinue" />
+
+    <ChoiceModal
+      v-if="showModal"
+      :options="modalOptions"
+      :title="modalTitle"
+      :crisis="node.crisis"
+      @select="onModalSelect"
+    />
+
     <TianjiDrawer
       :open="drawerOpen"
       :tianji-hints="tianjiHints"
@@ -49,11 +46,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { EventRunner } from '../engine/eventRunner'
+import { useStoryFeed } from '../composables/useStoryFeed'
 import TopBar from './TopBar.vue'
-import NarrativeView from './NarrativeView.vue'
-import ObserveBar from './ObserveBar.vue'
+import StoryFeed from './StoryFeed.vue'
+import ChoiceModal from './ChoiceModal.vue'
 import HostPanel from './HostPanel.vue'
-import InnerVoicePanel from './InnerVoicePanel.vue'
 import TianjiDrawer from './TianjiDrawer.vue'
 import profile from '../data/hosts/ning_caichen/profile.json'
 import timelineData from '../data/hosts/ning_caichen/timeline.json'
@@ -63,6 +60,7 @@ const props = defineProps<{
 }>()
 
 const drawerOpen = ref(false)
+const { feedItems, clear, appendHostResponse } = useStoryFeed(() => props.runner)
 
 const node = computed(() => props.runner.getCurrentNode())
 const canContinue = computed(() => props.runner.canContinue())
@@ -73,13 +71,31 @@ const systemAwakeningDone = computed(
 
 const needsAwakening = computed(() => props.runner.needsAwakening())
 const needsHostCall = computed(() => props.runner.needsHostCall())
-const showInnerVoice = computed(
-  () => needsAwakening.value || needsHostCall.value
+
+const showModal = computed(() => needsHostCall.value && Boolean(node.value.hostCall))
+
+const modalOptions = computed(() => {
+  const call = node.value.hostCall
+  if (!call) return []
+  return call.responses.map((r) => ({ id: r.id, label: r.label }))
+})
+
+const modalTitle = computed(() =>
+  node.value.crisis ? '宿主遭遇危机，你如何相助？' : '宿主向你求助'
 )
 
-const innerVoiceMode = computed(() =>
-  needsAwakening.value ? 'awakening' : 'host_call'
+const showObserveHint = computed(
+  () =>
+    isObserving.value &&
+    !needsHostCall.value &&
+    !needsAwakening.value
 )
+
+const feedClickable = computed(() => {
+  if (showModal.value) return false
+  if (needsAwakening.value) return true
+  return canContinue.value && isObserving.value
+})
 
 const topBarMode = computed(() => {
   if (needsHostCall.value) return '回应宿主'
@@ -98,7 +114,6 @@ const progress = computed(() => {
 })
 
 const goal = computed(() => timelineData.goal)
-
 const timelineNodes = computed(() => timelineData.nodes)
 
 const profileInfo = computed(() => ({
@@ -121,15 +136,22 @@ const tianjiHints = computed(() => {
   return hints
 })
 
-function onContinue() {
-  props.runner.continue()
+function onFeedContinue() {
+  if (needsAwakening.value) {
+    props.runner.completeAwakening()
+    return
+  }
+  if (canContinue.value) {
+    props.runner.continue()
+  }
 }
 
-function onAwakeningDone() {
-  props.runner.completeAwakening()
-}
-
-function onHostResponse(responseId: string) {
+function onModalSelect(responseId: string) {
+  const call = node.value.hostCall
+  const response = call?.responses.find((r) => r.id === responseId)
+  if (response) {
+    appendHostResponse(response)
+  }
   props.runner.resolveHostCall(responseId)
 }
 </script>

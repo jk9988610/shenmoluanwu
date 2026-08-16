@@ -6,7 +6,7 @@
       :node="runner.getCurrentNode()"
       @restart="restart"
     />
-    <GameView v-else-if="runner" :runner="runner" />
+    <GameView v-else-if="runner" :key="gameKey" :runner="runner" />
   </div>
 </template>
 
@@ -20,6 +20,7 @@ import RotateHint from './components/RotateHint.vue'
 import { clearSave } from './engine/gameState'
 
 const runner = ref<EventRunner | null>(null)
+const gameKey = ref(0)
 
 onMounted(() => {
   runner.value = new EventRunner(ningCaichenStory)
@@ -27,6 +28,7 @@ onMounted(() => {
 
 function restart() {
   clearSave()
+  gameKey.value += 1
   runner.value = new EventRunner(ningCaichenStory)
 }
 </script>
