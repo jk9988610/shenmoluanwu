@@ -18,10 +18,15 @@ export class EventRunner {
   constructor(story: StoryData, existingSave?: SaveData | null) {
     this.story = story
     const loaded = existingSave ?? loadSave()
-    if (loaded && loaded.hostId === story.hostId) {
+    if (
+      loaded &&
+      loaded.hostId === story.hostId &&
+      story.events[loaded.currentNodeId]
+    ) {
       this.save = loaded
     } else {
       this.save = createInitialSave(story)
+      this.enterNode(story.start)
     }
   }
 
@@ -68,6 +73,23 @@ export class EventRunner {
     if (!node.choices) return []
 
     return node.choices.filter((choice) => this.meetsRequirements(choice.requires))
+  }
+
+  canContinue(): boolean {
+    const node = this.getCurrentNode()
+    return (
+      this.getAvailableChoices().length === 0 &&
+      Boolean(node.next) &&
+      !node.ending
+    )
+  }
+
+  continue(): EventNode {
+    const node = this.getCurrentNode()
+    if (!node.next) {
+      throw new Error(`Node has no next: ${node.id}`)
+    }
+    return this.enterNode(node.next)
   }
 
   private meetsRequirements(requires?: StoryChoice['requires']): boolean {

@@ -11,6 +11,11 @@
       :choices="choices"
       @select="onSelect"
     />
+    <ChoiceBar
+      v-else-if="canContinue"
+      :choices="continueChoice"
+      @select="onContinue"
+    />
   </div>
 </template>
 
@@ -31,6 +36,9 @@ const emit = defineEmits<{
 
 const node = computed(() => props.runner.getCurrentNode())
 const choices = computed(() => props.runner.getAvailableChoices())
+const canContinue = computed(() => props.runner.canContinue())
+
+const continueChoice = [{ id: '__continue__', label: '继续', next: '' }]
 
 const display = computed(() => {
   const d = node.value.display
@@ -45,5 +53,9 @@ const progress = computed(() => {
 
 function onSelect(choiceId: string) {
   emit('choice', choiceId)
+}
+
+function onContinue() {
+  props.runner.continue()
 }
 </script>
