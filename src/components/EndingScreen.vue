@@ -1,5 +1,8 @@
 <template>
   <section class="ending-screen">
+    <header class="ending-screen__top">
+      <FullscreenButton />
+    </header>
     <div class="ending-screen__card">
       <h1 class="ending-screen__title">{{ ending?.title }}</h1>
       <p
@@ -22,6 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { EventNode } from '../engine/types'
+import FullscreenButton from './FullscreenButton.vue'
 
 const props = defineProps<{
   node: EventNode

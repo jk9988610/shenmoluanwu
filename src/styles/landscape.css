@@ -75,6 +75,59 @@ body {
   align-items: center;
 }
 
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.fullscreen-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  min-width: 36px;
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1;
+  color: #e7e5e4;
+  background: transparent;
+  border: 1px solid #4a6354;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.fullscreen-btn:hover {
+  background: #33483c;
+  border-color: #4ade80;
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.97);
+}
+
+.fullscreen-btn__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.fullscreen-btn__text {
+  white-space: nowrap;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .fullscreen-btn__text {
+    display: none;
+  }
+
+  .fullscreen-btn {
+    padding: 6px 8px;
+  }
+}
+
 .top-bar__dot-item {
   width: 6px;
   height: 6px;
@@ -170,15 +223,28 @@ body {
 
 .ending-screen {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   height: 100%;
   min-height: 280px;
-  padding: 16px;
+  padding: 0 16px 16px;
   background: #1a2421;
 }
 
+.ending-screen__top {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
 .ending-screen__card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0 auto;
   max-width: 560px;
   width: 100%;
   padding: 24px 20px;
@@ -287,4 +353,26 @@ body {
   .choice-bar__btn:active {
     transform: none;
   }
+
+  .fullscreen-btn:active {
+    transform: none;
+  }
+}
+
+html.is-fullscreen,
+html.is-fullscreen body,
+html.is-fullscreen #app {
+  height: 100%;
+  width: 100%;
+}
+
+html.is-fullscreen .app-shell {
+  max-width: none;
+  height: 100%;
+  margin: 0;
+}
+
+html.is-fullscreen .game-view,
+html.is-fullscreen .ending-screen {
+  border-radius: 0;
 }

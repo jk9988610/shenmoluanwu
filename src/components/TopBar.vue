@@ -5,19 +5,24 @@
       <span class="top-bar__dot">·</span>
       <span class="top-bar__period">{{ period }}</span>
     </div>
-    <div class="top-bar__progress" aria-label="进度">
-      <span
-        v-for="i in totalSteps"
-        :key="i"
-        class="top-bar__dot-item"
-        :class="{ active: i <= progress }"
-      />
+    <div class="top-bar__actions">
+      <div class="top-bar__progress" aria-label="进度">
+        <span
+          v-for="i in totalSteps"
+          :key="i"
+          class="top-bar__dot-item"
+          :class="{ active: i <= progress }"
+        />
+      </div>
+      <FullscreenButton />
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(
+import FullscreenButton from './FullscreenButton.vue'
+
+withDefaults(
   defineProps<{
     location: string
     period: string
