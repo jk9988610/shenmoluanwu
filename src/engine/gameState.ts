@@ -3,12 +3,11 @@ import { SAVE_KEY } from './types'
 
 export function createInitialSave(story: StoryData): SaveData {
   return {
-    version: 2,
+    version: 3,
     hostId: story.hostId,
     currentNodeId: story.start,
     flags: {},
     vars: {},
-    trust: 0,
     systemAwakeningDone: false,
     phase: 'with_system',
     resolvedHostCalls: [],
@@ -21,7 +20,6 @@ export function normalizeSave(raw: SaveData): SaveData {
   const phase = raw.phase ?? 'with_system'
   let systemAwakeningDone = raw.systemAwakeningDone ?? false
 
-  // 阶段一旧存档：中途进度视为已完成系统初遇
   if (
     phase === 'story_only' &&
     !systemAwakeningDone &&
@@ -32,10 +30,9 @@ export function normalizeSave(raw: SaveData): SaveData {
 
   return {
     ...raw,
-    version: 2,
+    version: 3,
     phase: 'with_system',
     resolvedHostCalls: raw.resolvedHostCalls ?? [],
-    trust: raw.trust ?? 0,
     systemAwakeningDone,
   }
 }
@@ -57,13 +54,10 @@ export function applyEffect(save: SaveData, effect?: Effect): SaveData {
     }
   }
 
-  const trust = save.trust + (effect.trust ?? 0)
-
   return {
     ...save,
     flags,
     vars,
-    trust,
     updatedAt: new Date().toISOString(),
   }
 }

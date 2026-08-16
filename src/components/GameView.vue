@@ -4,6 +4,7 @@
       :location="display.location"
       :period="display.period"
       :progress="progress"
+      :mode-label="topBarMode"
       :show-system-ui="systemAwakeningDone"
       @open-drawer="drawerOpen = true"
     />
@@ -14,7 +15,12 @@
         'game-main--with-host': systemAwakeningDone,
       }"
     >
-      <HostPanel v-if="systemAwakeningDone" :trust="trust" :goal="goal" />
+      <HostPanel
+        v-if="systemAwakeningDone"
+        :goal="goal"
+        :is-observing="isObserving"
+        :is-host-call="needsHostCall"
+      />
       <div class="game-center">
         <NarrativeView :node="node" />
       </div>
@@ -28,16 +34,7 @@
         @host-response="onHostResponse"
       />
     </div>
-    <ChoiceBar
-      v-if="choices.length > 0"
-      :choices="choices"
-      @select="onSelect"
-    />
-    <ChoiceBar
-      v-else-if="canContinue"
-      :choices="continueChoice"
-      @select="onContinue"
-    />
+    <ObserveBar v-if="canContinue && isObserving" @continue="onContinue" />
     <TianjiDrawer
       :open="drawerOpen"
       :tianji-hints="tianjiHints"
@@ -54,7 +51,7 @@ import { computed, ref } from 'vue'
 import type { EventRunner } from '../engine/eventRunner'
 import TopBar from './TopBar.vue'
 import NarrativeView from './NarrativeView.vue'
-import ChoiceBar from './ChoiceBar.vue'
+import ObserveBar from './ObserveBar.vue'
 import HostPanel from './HostPanel.vue'
 import InnerVoicePanel from './InnerVoicePanel.vue'
 import TianjiDrawer from './TianjiDrawer.vue'
@@ -65,16 +62,11 @@ const props = defineProps<{
   runner: EventRunner
 }>()
 
-const emit = defineEmits<{
-  choice: [choiceId: string]
-}>()
-
 const drawerOpen = ref(false)
 
 const node = computed(() => props.runner.getCurrentNode())
-const choices = computed(() => props.runner.getAvailableChoices())
 const canContinue = computed(() => props.runner.canContinue())
-const trust = computed(() => props.runner.getSave().trust)
+const isObserving = computed(() => props.runner.isObserving())
 const systemAwakeningDone = computed(
   () => props.runner.getSave().systemAwakeningDone
 )
@@ -89,6 +81,12 @@ const innerVoiceMode = computed(() =>
   needsAwakening.value ? 'awakening' : 'host_call'
 )
 
+const topBarMode = computed(() => {
+  if (needsHostCall.value) return '回应宿主'
+  if (isObserving.value) return '观察'
+  return ''
+})
+
 const display = computed(() => {
   const d = node.value.display
   return d ?? { location: '聊斋', period: '…' }
@@ -96,7 +94,7 @@ const display = computed(() => {
 
 const progress = computed(() => {
   const history = props.runner.getSave().history.length
-  return Math.min(history, 14)
+  return Math.min(history, 16)
 })
 
 const goal = computed(() => timelineData.goal)
@@ -122,12 +120,6 @@ const tianjiHints = computed(() => {
   }
   return hints
 })
-
-const continueChoice = [{ id: '__continue__', label: '继续', next: '' }]
-
-function onSelect(choiceId: string) {
-  emit('choice', choiceId)
-}
 
 function onContinue() {
   props.runner.continue()

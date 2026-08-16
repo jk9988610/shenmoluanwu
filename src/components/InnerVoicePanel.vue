@@ -24,7 +24,7 @@
       {{ line }}
     </p>
     <button type="button" class="inner-voice-panel__done" @click="emit('awakening-done')">
-      继续
+      继续观察
     </button>
   </template>
 
