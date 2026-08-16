@@ -219,11 +219,172 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #f5f0e8;
+  background: #1a2421;
   border-top: 1px solid #3f4f46;
   min-height: 0;
 }
 
+.observe-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #1a2421;
+  min-height: 0;
+}
+
+.observe-area__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.observe-area__empty {
+  margin: 0;
+  color: #78716c;
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 12px;
+}
+
+.observe-area__item {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(245, 240, 232, 0.06);
+}
+
+.observe-area__item--scene {
+  background: transparent;
+  padding: 4px 0;
+  color: #a8a29e;
+  font-style: italic;
+}
+
+.observe-area__item--npc {
+  border-left: 3px solid #a16207;
+}
+
+.observe-area__item--host {
+  border-left: 3px solid #0d9488;
+}
+
+.observe-area__item--system {
+  border-left: 3px solid #4ade80;
+}
+
+.observe-area__item--host_inner {
+  border-left: 3px solid #5eead4;
+}
+
+.observe-area__speaker {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #78716c;
+  margin-bottom: 4px;
+}
+
+.observe-area__text {
+  margin: 0;
+  color: #e7e5e4;
+  font-size: 14px;
+}
+
+.observe-area__item--scene .observe-area__text {
+  color: #a8a29e;
+}
+
+.dialog-box {
+  flex-shrink: 0;
+  min-height: 120px;
+  max-height: 38vh;
+  padding: 10px 14px 12px;
+  background: #f5f0e8;
+  border-top: 2px solid #4a6354;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dialog-box--clickable {
+  cursor: pointer;
+}
+
+.dialog-box--clickable:active {
+  background: #ebe4d8;
+}
+
+.dialog-box--crisis {
+  border-top-color: #f87171;
+  background: #fef2f2;
+}
+
+.dialog-box--inner {
+  background: #ecfdf5;
+}
+
+.dialog-box__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 22px;
+}
+
+.dialog-box__speaker {
+  font-size: 12px;
+  font-weight: 700;
+  max-width: 42%;
+  line-height: 1.3;
+}
+
+.dialog-box__speaker--left {
+  color: #0d9488;
+  text-align: left;
+}
+
+.dialog-box__speaker--right {
+  color: #4ade80;
+  text-align: right;
+}
+
+.dialog-box--crisis .dialog-box__speaker--right {
+  color: #dc2626;
+}
+
+.dialog-box__body {
+  flex: 1;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.dialog-box__text {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #1c1917;
+}
+
+.dialog-box__text--muted {
+  color: #a8a29e;
+}
+
+.dialog-box__hint {
+  margin: 0;
+  font-size: 12px;
+  color: #78716c;
+  text-align: center;
+}
+
+.dialog-box--clickable .dialog-box__hint {
+  color: #4ade80;
+}
+
+/* legacy story-feed - keep minimal for reference */
 .story-feed--clickable {
   cursor: pointer;
 }
