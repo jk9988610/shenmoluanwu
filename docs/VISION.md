@@ -54,7 +54,7 @@
 
 ## 相关文档
 
-- [世界观（聊斋）](WORLD_LIAOZHAi.md)
+- [世界观（聊斋）](WORLD_LIAOZHAI.md)
 - [系统机制](SYSTEM_MECHANICS.md)
 - [开发阶段](DEVELOPMENT_PLAN.md)
 - [叙事指南](NARRATIVE_GUIDE.md)
