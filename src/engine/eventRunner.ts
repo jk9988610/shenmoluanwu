@@ -63,6 +63,10 @@ export class EventRunner {
     return !this.save.resolvedHostCalls.includes(node.id)
   }
 
+  isObserving(): boolean {
+    return this.canShowStoryActions() && !this.needsHostCall()
+  }
+
   canShowStoryActions(): boolean {
     return !this.needsAwakening() && !this.needsHostCall()
   }
@@ -88,7 +92,7 @@ export class EventRunner {
     return node
   }
 
-  resolveHostCall(responseId: string): HostCallResponse {
+  resolveHostCall(responseId: string): EventNode {
     const node = this.getCurrentNode()
     const hostCall = node.hostCall
     if (!hostCall) {
@@ -102,14 +106,6 @@ export class EventRunner {
 
     let save = applyEffect(this.save, response.effects)
 
-    if (response.unlockChoices) {
-      const flags = { ...save.flags }
-      for (const choiceId of response.unlockChoices) {
-        flags[`unlock_${choiceId}`] = true
-      }
-      save = { ...save, flags }
-    }
-
     save = {
       ...save,
       resolvedHostCalls: [...save.resolvedHostCalls, node.id],
@@ -118,7 +114,12 @@ export class EventRunner {
 
     this.save = save
     persistSave(this.save)
-    return response
+
+    if (response.next) {
+      return this.enterNode(response.next)
+    }
+
+    return node
   }
 
   enterNode(nodeId: string): EventNode {
@@ -143,24 +144,11 @@ export class EventRunner {
     return node
   }
 
-  getAvailableChoices(): StoryChoice[] {
-    if (!this.canShowStoryActions()) return []
-
-    const node = this.getCurrentNode()
-    if (!node.choices) return []
-
-    return node.choices.filter((choice) => this.meetsRequirements(choice.requires))
-  }
-
   canContinue(): boolean {
     if (!this.canShowStoryActions()) return false
 
     const node = this.getCurrentNode()
-    return (
-      this.getAvailableChoices().length === 0 &&
-      Boolean(node.next) &&
-      !node.ending
-    )
+    return Boolean(node.next) && !node.ending
   }
 
   continue(): EventNode {
@@ -171,43 +159,12 @@ export class EventRunner {
     return this.enterNode(node.next)
   }
 
-  private meetsRequirements(requires?: StoryChoice['requires']): boolean {
-    if (!requires) return true
-
-    if (requires.flags) {
-      for (const [key, value] of Object.entries(requires.flags)) {
-        if (this.save.flags[key] !== value) return false
-      }
-    }
-
-    if (requires.minTrust !== undefined && this.save.trust < requires.minTrust) {
-      return false
-    }
-
-    return true
-  }
-
-  choose(choiceId: string): EventNode {
-    const node = this.getCurrentNode()
-    const choice = node.choices?.find((c) => c.id === choiceId)
-    if (!choice) {
-      throw new Error(`Choice not found: ${choiceId}`)
-    }
-
-    if (!this.meetsRequirements(choice.requires)) {
-      throw new Error(`Requirements not met for choice: ${choiceId}`)
-    }
-
-    let save = applyEffect(this.save, choice.sets)
-    this.save = save
-    persistSave(this.save)
-
-    return this.enterNode(choice.next)
-  }
-
   reset(): void {
     this.save = createInitialSave(this.story)
     persistSave(this.save)
     this.enterNode(this.story.start)
   }
 }
+
+// Keep for potential tooling; player no longer selects story choices
+export type { StoryChoice, HostCallResponse }

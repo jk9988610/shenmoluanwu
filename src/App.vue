@@ -6,11 +6,7 @@
       :node="runner.getCurrentNode()"
       @restart="restart"
     />
-    <GameView
-      v-else-if="runner"
-      :runner="runner"
-      @choice="onChoice"
-    />
+    <GameView v-else-if="runner" :runner="runner" />
   </div>
 </template>
 
@@ -28,11 +24,6 @@ const runner = ref<EventRunner | null>(null)
 onMounted(() => {
   runner.value = new EventRunner(ningCaichenStory)
 })
-
-function onChoice(choiceId: string) {
-  if (!runner.value) return
-  runner.value.choose(choiceId)
-}
 
 function restart() {
   clearSave()

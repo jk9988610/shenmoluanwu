@@ -7,6 +7,7 @@
       <span class="top-bar__location">{{ location }}</span>
       <span class="top-bar__dot">·</span>
       <span class="top-bar__period">{{ period }}</span>
+      <span v-if="modeLabel" class="top-bar__mode">{{ modeLabel }}</span>
     </div>
     <div class="top-bar__actions">
       <button
@@ -39,8 +40,9 @@ withDefaults(
     period: string
     progress?: number
     showSystemUi?: boolean
+    modeLabel?: string
   }>(),
-  { progress: 0, showSystemUi: true }
+  { progress: 0, showSystemUi: true, modeLabel: '' }
 )
 
 const emit = defineEmits<{

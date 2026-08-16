@@ -1,12 +1,10 @@
 export interface Effect {
   flags?: Record<string, boolean>
-  trust?: number
   vars?: Record<string, number>
 }
 
 export interface ChoiceRequires {
   flags?: Record<string, boolean>
-  minTrust?: number
 }
 
 export interface StoryChoice {
@@ -29,7 +27,7 @@ export interface HostCallResponse {
   systemText: string
   hostReply?: string
   effects?: Effect
-  unlockChoices?: string[]
+  next?: string
 }
 
 export interface HostCall {
@@ -88,7 +86,6 @@ export interface SaveData {
   currentNodeId: string
   flags: Record<string, boolean>
   vars: Record<string, number>
-  trust: number
   systemAwakeningDone: boolean
   phase: 'story_only' | 'with_system'
   resolvedHostCalls: string[]
