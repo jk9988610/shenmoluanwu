@@ -1,5 +1,6 @@
 import type {
   EventNode,
+  HostCallResponse,
   SaveData,
   StoryChoice,
   StoryData,
@@ -8,6 +9,7 @@ import {
   applyEffect,
   createInitialSave,
   loadSave,
+  normalizeSave,
   persistSave,
 } from './gameState'
 
@@ -23,7 +25,7 @@ export class EventRunner {
       loaded.hostId === story.hostId &&
       story.events[loaded.currentNodeId]
     ) {
-      this.save = loaded
+      this.save = normalizeSave(loaded)
     } else {
       this.save = createInitialSave(story)
       this.enterNode(story.start)
@@ -44,6 +46,79 @@ export class EventRunner {
 
   isEnding(): boolean {
     return Boolean(this.getCurrentNode().ending)
+  }
+
+  needsAwakening(): boolean {
+    const node = this.getCurrentNode()
+    return Boolean(
+      node.systemAwakening &&
+        node.awakeningScript &&
+        !this.save.systemAwakeningDone
+    )
+  }
+
+  needsHostCall(): boolean {
+    const node = this.getCurrentNode()
+    if (!node.hostCall) return false
+    return !this.save.resolvedHostCalls.includes(node.id)
+  }
+
+  canShowStoryActions(): boolean {
+    return !this.needsAwakening() && !this.needsHostCall()
+  }
+
+  completeAwakening(): EventNode {
+    const node = this.getCurrentNode()
+    const script = node.awakeningScript
+    if (!script) {
+      throw new Error('No awakening script on current node')
+    }
+
+    this.save = {
+      ...this.save,
+      systemAwakeningDone: true,
+      phase: 'with_system',
+      updatedAt: new Date().toISOString(),
+    }
+    persistSave(this.save)
+
+    if (script.next) {
+      return this.enterNode(script.next)
+    }
+    return node
+  }
+
+  resolveHostCall(responseId: string): HostCallResponse {
+    const node = this.getCurrentNode()
+    const hostCall = node.hostCall
+    if (!hostCall) {
+      throw new Error('No host call on current node')
+    }
+
+    const response = hostCall.responses.find((r) => r.id === responseId)
+    if (!response) {
+      throw new Error(`Host call response not found: ${responseId}`)
+    }
+
+    let save = applyEffect(this.save, response.effects)
+
+    if (response.unlockChoices) {
+      const flags = { ...save.flags }
+      for (const choiceId of response.unlockChoices) {
+        flags[`unlock_${choiceId}`] = true
+      }
+      save = { ...save, flags }
+    }
+
+    save = {
+      ...save,
+      resolvedHostCalls: [...save.resolvedHostCalls, node.id],
+      updatedAt: new Date().toISOString(),
+    }
+
+    this.save = save
+    persistSave(this.save)
+    return response
   }
 
   enterNode(nodeId: string): EventNode {
@@ -69,6 +144,8 @@ export class EventRunner {
   }
 
   getAvailableChoices(): StoryChoice[] {
+    if (!this.canShowStoryActions()) return []
+
     const node = this.getCurrentNode()
     if (!node.choices) return []
 
@@ -76,6 +153,8 @@ export class EventRunner {
   }
 
   canContinue(): boolean {
+    if (!this.canShowStoryActions()) return false
+
     const node = this.getCurrentNode()
     return (
       this.getAvailableChoices().length === 0 &&
@@ -124,17 +203,6 @@ export class EventRunner {
     persistSave(this.save)
 
     return this.enterNode(choice.next)
-  }
-
-  advanceIfNoChoices(): EventNode | null {
-    const node = this.getCurrentNode()
-    const choices = this.getAvailableChoices()
-
-    if (choices.length > 0) return null
-    if (node.next) {
-      return this.enterNode(node.next)
-    }
-    return node
   }
 
   reset(): void {

@@ -91,6 +91,7 @@ export interface SaveData {
   trust: number
   systemAwakeningDone: boolean
   phase: 'story_only' | 'with_system'
+  resolvedHostCalls: string[]
   history: string[]
   updatedAt: string
 }
